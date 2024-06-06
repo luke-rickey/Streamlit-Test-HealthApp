@@ -74,10 +74,21 @@ def MainDataApp(json_File):
       axis=1
     )
     list_of_provider_reference = df9.loc[df9 != False].index.tolist()
-    index_of_provider_reference = list_of_provider_reference[0]
+
+    try:
+      index_of_provider_reference = list_of_provider_reference[0]
+    except:
+      st.write("NOTICE: At least one given NPI was not found in the data.")
+      exit(1)
+
     actual_provider_reference = df9[index_of_provider_reference]
     if npi2 != None:
-      index_of_provider_reference2 = list_of_provider_reference[1]
+      try:
+        index_of_provider_reference2 = list_of_provider_reference[1]
+      except:
+        st.write("NOTICE: At least one given NPI was not found in the data.")
+        exit(1)
+
       actual_provider_reference2 = df9[index_of_provider_reference2]
       df = df[df['provider_references'].apply(contain_reference_number, args=(actual_provider_reference, actual_provider_reference2,))]
     else:
