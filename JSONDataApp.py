@@ -25,6 +25,15 @@ def contain_npi(provider_row, npi_row):
       return provider_row
   return result
 
+#Only include rows with provided tin
+def contain_tin(provider_row, tin_row):
+  result = False
+  if tin_row == tin:
+    return provider_row
+  if tin_row == tin2:
+    return provider_row
+  return result
+
 #Only include rows with provided provider_reference number
 def contain_reference_number(listOfNumbers, num, num2):
   result = False
@@ -54,7 +63,8 @@ def MainDataApp(json_File):
 
   #Get rid of Institutional Values
   df = df[df['billing_class'] == billing_type]
-  if billing_type == "professional":
+
+  if contain23 == "yes":
     df = df[df['service_code'].apply(contain_23)]
 
   #############################################FirstLine
@@ -65,7 +75,6 @@ def MainDataApp(json_File):
   df2 = pd.json_normalize(data2, 'provider_references')
   df3 = (df2.pop('provider_groups').explode().apply(pd.Series))
   df2 = pd.concat([df2, df3], axis=1)
-  df2 = df2.drop(df2.columns[[1]], axis=1)
   #############################################
   
   if npi != None:
@@ -94,6 +103,32 @@ def MainDataApp(json_File):
     else:
       df = df[df['provider_references'].apply(contain_reference_number, args=(actual_provider_reference, npi2,))]
 
+  if ein != None:
+    df4 = df2.apply(
+      lambda row: contain_tin(row['provider_group_id'], row['tin']),
+      axis=1
+    )   
+    list_of_provider_reference2 = df4.loc[df4 != False].index.tolist()
+
+    try:
+      index_of_provider_reference3 = list_of_provider_reference2[0]
+    except:
+      st.write("NOTICE: At least one given EIN was not found in the data.")
+      exit(1)
+
+    actual_provider_reference3 = df4[index_of_provider_reference3]
+    if ein2 != None:
+      try:
+        index_of_provider_reference4 = list_of_provider_reference2[1]
+      except:
+        st.write("NOTICE: At least one given EIN was not found in the data.")
+        exit(1)
+
+      actual_provider_reference4 = df4[index_of_provider_reference4]
+      df = df[df['provider_references'].apply(contain_reference_number, args=(actual_provider_reference3, actual_provider_reference4,))]
+    else:
+      df = df[df['provider_references'].apply(contain_reference_number, args=(actual_provider_reference3, ein2,))]
+
   references_column = df['negotiated_rate']
   new_values = references_column.apply(change_by_RVU)
   df['negotiated_rate'] = new_values
@@ -115,10 +150,13 @@ def MainDataApp(json_File):
 def main():
   st.set_page_config(page_title="JSON Data Formatter", page_icon=":necktie:")
   st.header("JSON Data Formatter :necktie:")
-  global billing_type
+  global billing_type, contain23
   billing_type = "Professional"
   billing_selector = st.selectbox("Choose between Professional or Institutional Billing:", ("professional", "institutional"))
   billing_type = billing_selector
+  contain23 = "Yes"
+  contain23_selector = st.selectbox("Require data to contain service code 23?", ("yes", "no"))
+  contain23 = contain23_selector
 
   global json_File, RVU_Value
   RVU_Value = 2.800
@@ -142,6 +180,20 @@ def main():
     number2 = st.number_input("Insert the second NPI you would like the data for, then press enter:", value=None, step=1, placeholder="Type a number...")
   if number2 is not None:
     npi2 = number2
+
+  global ein, ein2, tin, tin2
+  ein = None
+  ein2 = None
+  ein_string2 = None
+  ein_string = st.text_input("Insert EIN with the format (XX-XXXXXXX), then press enter:", value=None, placeholder="XX-XXXXXXX")
+  ein = ein_string
+  ein_comparison = st.selectbox("Select the number of EINs you would like to view:", ('1', '2'))
+  if ein_comparison == '2':
+    ein_string2 = st.text_input("Insert second EIN with the format (XX-XXXXXXX), then press enter:", value=None, placeholder="XX-XXXXXXX")
+  if ein_string2 is not None:
+    ein2 = ein_string2
+  tin = {'type': 'ein', 'value': ein}  
+  tin2 = {'type': 'ein', 'value': ein2} 
 
   if st.button("Get Default Data"):
     df = MainDataApp(json_File)
