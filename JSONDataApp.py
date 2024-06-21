@@ -48,6 +48,15 @@ def contain_reference_number(listOfNumbers, num, num2):
 def change_by_RVU(x):
   return (x/RVU_Value)
 
+#Change all provider references to their NPIs
+def change_providerID_to_NPI(x, df2_tmp):
+  tmp_list = []
+  for n in x:
+    id_changed_to_npi = df2_tmp.loc[(n-1), 'npi']
+    tmp_list.append(id_changed_to_npi)
+  return tmp_list
+
+
 #Main Code Definition
 def MainDataApp(json_File):
   xstsa = 5
@@ -129,9 +138,14 @@ def MainDataApp(json_File):
     else:
       df = df[df['provider_references'].apply(contain_reference_number, args=(actual_provider_reference3, ein2,))]
 
+  #Apply RVU Change to the rates, then change provider_references to their NPIs
   references_column = df['negotiated_rate']
   new_values = references_column.apply(change_by_RVU)
   df['negotiated_rate'] = new_values
+
+  ref_column = df['provider_references']
+  newvalues = ref_column.apply(change_providerID_to_NPI, args=(df2,))
+  df['provider_references'] = newvalues
 
   #Change Negotiated Rates Values to be formatted in $ amount.
   df['negotiated_rate'] = df['negotiated_rate'].apply(lambda x: float("{:.2f}".format(x)))
