@@ -56,6 +56,13 @@ def change_providerID_to_NPI(x, df2_tmp):
     tmp_list.append(id_changed_to_npi)
   return tmp_list
 
+#Add Column for the Count of how many NPIs there are per negotiated rate.
+def change_to_count(x):
+  counter = 0
+  for n in x:
+    counter = counter + len(n)
+  return counter
+
 
 #Main Code Definition
 def MainDataApp(json_File):
@@ -150,6 +157,9 @@ def MainDataApp(json_File):
   #Change Negotiated Rates Values to be formatted in $ amount.
   df['negotiated_rate'] = df['negotiated_rate'].apply(lambda x: float("{:.2f}".format(x)))
   df['negotiated_rate'] = '$' + df['negotiated_rate'].astype(str)
+
+  #Add column for the Count of how many NPIs are in each row
+  df.insert(0, 'NPI Count', df['provider_references'].apply(change_to_count))
 
   return df
 
