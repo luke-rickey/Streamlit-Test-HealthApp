@@ -187,10 +187,10 @@ def main():
   rvu_dict = {'jsonformatter12001.json': 2.800, 'jsonformatter12002.json': 3.370, 'jsonformatter12011.json': 3.350, 'jsonformatter12013.json': 3.490,
               'jsonformatter92950.json': 9.840, 'jsonformatter93010.json': 0.240, 'jsonformatter99236.json': 6.120, 'jsonformatter99283.json': 2.110,
               'jsonformatter99284.json': 3.560, 'jsonformatter99285.json': 4.420, 'jsonformatter99291.json': 8.160, 'jsonformatter99292.json': 3.560}
-  json_File_selector = st.selectbox("Choose Billing Code:", ('jsonformatter12001.json', 'jsonformatter12002.json', 'jsonformatter12011.json', 'jsonformatter12013.json',
-                                                     'jsonformatter92950.json', 'jsonformatter93010.json', 'jsonformatter99236.json', 'jsonformatter99283.json', 
-                                                     'jsonformatter99284.json', 'jsonformatter99285.json', 'jsonformatter99291.json', 'jsonformatter99292.json'))
-  json_File = json_File_selector
+  json_File_selector = st.selectbox("Choose Billing Code:", ('12001', '12002', '12011', '12013',
+                                                     '92950', '93010', '99236', '99283', 
+                                                     '99284', '99285', '99291', '99292'))
+  json_File = 'jsonformatter' + json_File_selector + '.json'
   RVU_Value = rvu_dict[json_File]
 
   global npi, npi2
